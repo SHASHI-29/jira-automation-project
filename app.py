@@ -10,24 +10,21 @@ UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# OpenAI endpoint (NOT Moonshot)
-AI_API_URL = "https://api.openai.com/v1/chat/completions"
-AI_API_KEY = os.environ.get("OPENAI_API_KEY")
+MOONSHOT_API_URL = "https://api.moonshot.cn/v1/chat/completions"
+MOONSHOT_API_KEY = os.environ.get("MOONSHOT_API_KEY")
 
-
-# ---------------- FUNCTIONS ----------------
 
 def generate_mom(meeting_text: str) -> str:
-    if not AI_API_KEY:
-        raise Exception("OPENAI_API_KEY is not set in environment variables")
+    if not MOONSHOT_API_KEY:
+        raise Exception("MOONSHOT_API_KEY is not set in environment variables")
 
     headers = {
-        "Authorization": f"Bearer {AI_API_KEY}",
+        "Authorization": f"Bearer {MOONSHOT_API_KEY}",
         "Content-Type": "application/json"
     }
 
     payload = {
-        "model": "gpt-3.5-turbo",
+        "model": "moonshot-v1-8k",
         "messages": [
             {
                 "role": "system",
@@ -39,16 +36,16 @@ def generate_mom(meeting_text: str) -> str:
         "temperature": 0.3
     }
 
-    response = requests.post(AI_API_URL, headers=headers, json=payload)
+    response = requests.post(MOONSHOT_API_URL, headers=headers, json=payload)
 
     if response.status_code != 200:
-        raise Exception(f"AI API Error: {response.text}")
+        raise Exception(f"Moonshot API Error: {response.text}")
 
     data = response.json()
     return data["choices"][0]["message"]["content"]
 
 
-def extract_relevant_points(mom_text: str):
+def extract_relevant_points(mom_text):
     pattern = re.compile(
         r"\d+\.\s+\*\*Issue:\*\*\s+(.*?)\s*\n\s*-\s+\*\*Assigned to:\*\*\s+(\w+)",
         re.MULTILINE
@@ -108,8 +105,6 @@ def create_jira_issue(config_data, issue_data):
     return response.json()
 
 
-# ---------------- ROUTES ----------------
-
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -159,8 +154,6 @@ def process():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-# ---------------- MAIN ----------------
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
