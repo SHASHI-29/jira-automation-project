@@ -10,8 +10,8 @@ UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# Moonshot / OpenAI compatible endpoint
-AI_API_URL = "https://api.moonshot.cn/v1/chat/completions"
+# OpenAI endpoint (NOT Moonshot)
+AI_API_URL = "https://api.openai.com/v1/chat/completions"
 AI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 
@@ -27,7 +27,7 @@ def generate_mom(meeting_text: str) -> str:
     }
 
     payload = {
-        "model": "moonshot-v1-8k",
+        "model": "gpt-3.5-turbo",
         "messages": [
             {
                 "role": "system",
